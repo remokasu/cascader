@@ -74,6 +74,7 @@ data = data.dup()  # 複製して追加
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 # 1 -> 2 -> 3 -> 4 -> 5
+                      ↑ (current)
 data = data.jump(-2)  # ジャンプ
 # 1 -> 2 -> 3 -> 4 -> 5
             ↑ (current)
@@ -160,5 +161,5 @@ data = data.push(2).push(3).push(4).push(5)
                       ↑ (current)
 data = data.tail()  # (tail) へ移動
 # 1 -> 2 -> 3 -> 4 -> 5
-↑ (current)
+  ↑ (current)
 ```
