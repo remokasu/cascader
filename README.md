@@ -31,7 +31,9 @@ data = Cascader(1)  # 1 で初期化
 ```
 
 ## push: 
-- 現在の (head) の次 (next) に要素を追加
+- 現在位置 (current) の次 (next) に要素を追加
+- 追加した要素は (current) になる
+- 伝統的なスタックの push とは異なり、(current) が (head) でなくても追加できる
 ``` python
 data = Cascader(1)
 # 1
@@ -41,7 +43,7 @@ data = data.push(3)  # 3 追加
 # 1 -> 2 -> 3
 ```
 
-## pop: (head) を削除
+## pop: (current) を削除
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
@@ -50,7 +52,7 @@ data = data.pop()  # 削除
 # 1 -> 2 -> 3 -> 4
 ```
 
-## swap: (head) とその一つ前を入れ替え
+## swap: (current) とその一つ前を入れ替え
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
@@ -59,7 +61,7 @@ data = data.swap()  # 入れ替え
 # 1 -> 2 -> 3 -> 5 -> 4
 ```
 
-## dup: (head) を複製して (head) の次 (next) に追加
+## dup: (current) を複製して (head) の次 (next) に追加
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
@@ -69,25 +71,27 @@ data = data.dup()  # 複製して追加
 ```
 
 ## jump: 指定の要素に移動
-ジャンプ先は (head) からの相対位置で指定する。
+ジャンプ先は (current) からの相対位置で指定する。
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 # 1 -> 2 -> 3 -> 4 -> 5
-                      ↑ (current)
+#                     ↑ (current)
 data = data.jump(-2)  # ジャンプ
 # 1 -> 2 -> 3 -> 4 -> 5
-            ↑ (current)
+#           ↑ (current)
 ```
 
-## clone: 指定の要素の要素を複製して (head) の次に追加
-- 複製対象は (head) からの相対位置で指定する
+## clone: 指定の要素の要素を複製して (current) の次に追加
+- 複製対象は (current) からの相対位置で指定する
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 # 1 -> 2 -> 3 -> 4 -> 5
+#                     ↑ (current)
 data = data.clone(-3)  # 複製して追加
 # 1 -> 2 -> 3 -> 4 -> 5 -> 2
+#                          ↑ (current)
 ```
 
 ## reverse: 逆順
@@ -100,29 +104,31 @@ data = data.reverse()  # 逆順
 ```
 
 ## pick: 指定の要素を返す
-- (head) からの相対位置で指定する
+- (current) からの相対位置で指定する
 - pick した要素は新規の Cascader として返される
 - 元の Cascader は変更されない
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 # 1 -> 2 -> 3 -> 4 -> 5
+#                     ↑ (current)
 data = data.pick(-3)
 # 2
 ```
 
 ## pluck: 指定の要素を削除して末尾に追加
-- (head) からの相対位置で指定する
+- (current) からの相対位置で指定する
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 # 1 -> 2 -> 3 -> 4 -> 5
+#                     ↑ (current)
 data = data.pluck(-3)  # 削除して末尾に追加
 # 1 -> 2 -> 3 -> 5 -> 2
 ```
 
 ## insert: 指定の位置の前に要素を挿入
-- (head) からの相対位置で指定する
+- (current) からの相対位置で指定する
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
@@ -132,7 +138,7 @@ data = data.insert(-3, 10)  # 挿入
 ```
 
 ## remove: 指定の要素を削除
-- (head) からの相対位置で指定する
+- (current) からの相対位置で指定する
 ``` python
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
@@ -147,10 +153,10 @@ data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 data = data.jump(-3)  # ジャンプ
 # 1 -> 2 -> 3 -> 4 -> 5
-       ↑ (current)
+#      ↑ (current)
 data = data.head()  # (head) へ移動
 # 1 -> 2 -> 3 -> 4 -> 5
-                      ↑ (current)
+#                     ↑ (current)
 ```
 
 ## tail: (tail) へ移動
@@ -158,8 +164,8 @@ data = data.head()  # (head) へ移動
 data = Cascader(1)
 data = data.push(2).push(3).push(4).push(5)
 # 1 -> 2 -> 3 -> 4 -> 5
-                      ↑ (current)
+#                     ↑ (current)
 data = data.tail()  # (tail) へ移動
 # 1 -> 2 -> 3 -> 4 -> 5
-  ↑ (current)
+# ↑ (current)
 ```
