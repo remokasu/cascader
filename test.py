@@ -240,6 +240,14 @@ def test_ifelse():
     obj = obj.current()
     assert obj.value == 5
 
+def test_save_state_and_restore_state():
+    obj = Cascader(1)
+    obj = obj.push(2).push(3).push(4).push(5)
+    obj = obj.save_state()
+    obj2 = Cascader(1)
+    obj2 = Cascader.restore_state(obj)
+    assert obj2.get_values() == [1, 2, 3, 4, 5]
+
 if __name__ == '__main__':
     test_push()
     test_pop()
@@ -257,3 +265,4 @@ if __name__ == '__main__':
     test_reverse()
     test_update()
     test_if_()
+    test_save_state_and_restore_state()
