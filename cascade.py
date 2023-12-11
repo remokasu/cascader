@@ -1,17 +1,22 @@
 
 from typing import Any
 
+
 class InvalidOffsetError(Exception):
     pass
+
 
 class EmptyStackError(Exception):
     pass
 
+
 class InvalidOperationError(Exception):
     pass
 
+
 class DataIntegrityError(Exception):
     pass
+
 
 class Cascader:
     def __init__(self, obj, prev=None, next=None):
@@ -42,8 +47,8 @@ class Cascader:
 
     def pop(self) -> 'Cascader':
         if self.prev is None:
-            # raise EmptyStackError("Error: Stack is empty")
-            return Cascader(None, None, None)
+            raise EmptyStackError("Error: Stack is empty")
+            # return Cascader(None, None, None)
         if self.next is not None:
             self.next.prev = self.prev
         self.prev.next = self.next
@@ -159,6 +164,11 @@ class Cascader:
     # Head Methods
     ###########################################################
 
+    def append(self, obj) -> 'Cascader':
+        if self.is_head() is False:
+            raise InvalidOperationError("Error: Cannot append on a non-head")
+        return self.push(obj)
+
     def pushH(self, obj) -> 'Cascader':
         if self.is_head() is False:
             raise InvalidOperationError("Error: Cannot pushH on a non-head")
@@ -189,27 +199,38 @@ class Cascader:
             raise InvalidOperationError("Error: Cannot cloneH on a non-head")
         return self.clone(offset)
 
+    def removeH(self, offset: int) -> 'Cascader':
+        if self.is_head() is False:
+            raise InvalidOperationError("Error: Cannot removeH on a non-head")
+        return self.remove(offset)
+
+    def insertH(self, offset: int, obj: Any) -> 'Cascader':
+        if self.is_head() is False:
+            raise InvalidOperationError("Error: Cannot insertH on a non-head")
+        return self.insert(offset, obj)
+
+
     ###########################################################
     # Conditional Methods
     ###########################################################
 
     def if_(self, offset: int) -> 'Cascader':
-        if self.obj is True:
+        if bool(self.obj) is True:
             return self.jump(offset)
         return self
 
     def ifnot(self, offset: int) -> 'Cascader':
-        if self.obj is False:
+        if bool(self.obj) is False:
             return self.jump(offset)
         return self
 
     def ifelse(self, offset_true: int, offset_false: int) -> 'Cascader':
-        if self.obj is True:
+        if bool(self.obj) is True:
             return self.jump(offset_true)
         return self.jump(offset_false)
 
     ###########################################################
-    # Other Methods
+    # Reset Methods
     ###########################################################
 
     def reset(self) -> 'Cascader':
@@ -233,6 +254,26 @@ class Cascader:
             current = current.prev
         return new_cascader
 
+    def iterate(self) -> 'Cascader':
+        current = self.tail()
+        while current.next is not None:
+            yield current
+            current = current.next
+        yield current
+
+    def iterate_reverse(self) -> 'Cascader':
+        current = self.head()
+        while current.prev is not None:
+            yield current
+            current = current.prev
+        yield current
+
+    def to_list(self) -> list[Any]:
+        return list(map(lambda x: x.obj, self.iterate()))
+    
+    def to_list_reverse(self) -> list[Any]:
+        return list(map(lambda x: x.obj, self.iterate_reverse()))
+
     ###########################################################
     # Boolean Methods
     ###########################################################
@@ -250,19 +291,6 @@ class Cascader:
     def update(self, offset: int, obj: Any) -> None:
         target = self.jump(offset)
         target.set_value(obj)
-
-    ###########################################################
-    # Getter Methods
-    ###########################################################
-
-    def get_values(self) -> list[Any]:
-        current = self.tail()
-        values = []
-        while current.is_head() is False:
-            values.append(current.obj)
-            current = current.next
-        values.append(current.obj)
-        return values
 
     ###########################################################
     # Setter Methods
@@ -291,6 +319,15 @@ class Cascader:
             next_cascader.prev = restored_cascader
         return restored_cascader
 
+    ###########################################################
+    # Error Methods
+    ###########################################################
+
+    def has_error(self) -> bool:
+        return self.error is not None
+
+    def get_error(self) -> Exception:
+        return self.error
 
     ###########################################################
     # Magic Methods
@@ -303,4 +340,7 @@ class Cascader:
         return f"Cascader(obj={self.obj})"
 
     def __len__(self):
-        return len(self.head().get_values())
+        return len(self.to_list())
+
+    def __iter__(self):
+        return self.iterate()

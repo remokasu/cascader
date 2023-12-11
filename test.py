@@ -1,35 +1,36 @@
 from cascade import Cascader
-from cascade import InvalidOffsetError, InvalidOperationError
+from cascade import InvalidOffsetError, InvalidOperationError, EmptyStackError
 
+
+import pytest
 
 def test_push():
     # push
     obj = Cascader(1)
-    assert obj.get_values() == [1]
+    assert obj.to_list() == [1]
     obj = obj.push(2)
-    assert obj.get_values() == [1, 2]
+    assert obj.to_list() == [1, 2]
     obj = obj.push(3)
-    assert obj.get_values() == [1, 2, 3]
+    assert obj.to_list() == [1, 2, 3]
 
 def test_pop():
     # pop
     obj = Cascader(1)
     obj = obj.push(2).push(3)
     obj = obj.pop()
-    assert obj.get_values() == [1, 2]
+    assert obj.to_list() == [1, 2]
     obj = obj.pop()
-    assert obj.get_values() == [1]
-    obj = obj.pop()
-    assert obj.get_values() == [None]
-    obj = obj.pop()
-    assert obj.get_values() == [None]
+    assert obj.to_list() == [1]
+    with pytest.raises(EmptyStackError):
+        obj = obj.pop()
+
 
 def test_swap():
     # swap
     obj = Cascader(1)
     obj = obj.push(2).push(3)
     obj = obj.swap()
-    assert obj.get_values() == [1, 3, 2]
+    assert obj.to_list() == [1, 3, 2]
     obj = Cascader(1)
     try:
         obj = obj.swap()
@@ -42,14 +43,14 @@ def test_dup():
     obj = Cascader(1)
     obj = obj.push(2).push(3)
     obj = obj.dup()
-    assert obj.get_values() == [1, 2, 3, 3]
+    assert obj.to_list() == [1, 2, 3, 3]
 
 def test_jump():
     # jump
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.jump(0)
-    assert obj.get_values() == [1, 2, 3, 4, 5]
+    assert obj.to_list() == [1, 2, 3, 4, 5]
     obj = obj.jump(-1)
     assert obj.value == 4
     obj = obj.jump(-3)
@@ -94,9 +95,9 @@ def test_clone():
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.clone(-2)
-    assert obj.get_values() == [1, 2, 3, 4, 5, 3]
+    assert obj.to_list() == [1, 2, 3, 4, 5, 3]
     obj = obj.clone(0)
-    assert obj.get_values() == [1, 2, 3, 4, 5, 3, 3]
+    assert obj.to_list() == [1, 2, 3, 4, 5, 3, 3]
     try:
         obj = obj.clone(1)
         assert False
@@ -127,15 +128,15 @@ def test_pluck():
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.pluck(0)
-    assert obj.get_values() == [1, 2, 3, 4, 5]
+    assert obj.to_list() == [1, 2, 3, 4, 5]
     obj = obj.pluck(-1)
-    assert obj.get_values() == [1, 2, 3, 5, 4]
+    assert obj.to_list() == [1, 2, 3, 5, 4]
     obj = obj.pluck(-2)
-    assert obj.get_values() == [1, 2, 5, 4, 3]
+    assert obj.to_list() == [1, 2, 5, 4, 3]
     obj = obj.pluck(-3)
-    assert obj.get_values() == [1, 5, 4, 3, 2]
+    assert obj.to_list() == [1, 5, 4, 3, 2]
     obj = obj.pluck(-4)
-    assert obj.get_values() == [5, 4, 3, 2, 1]
+    assert obj.to_list() == [5, 4, 3, 2, 1]
     try:
         obj.pluck(-5)
         assert False
@@ -147,11 +148,11 @@ def test_clone():
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.clone(0)
-    assert obj.get_values() == [1, 2, 3, 4, 5, 5]
+    assert obj.to_list() == [1, 2, 3, 4, 5, 5]
     obj = obj.clone(-2)
-    assert obj.get_values() == [1, 2, 3, 4, 5, 5, 4]
+    assert obj.to_list() == [1, 2, 3, 4, 5, 5, 4]
     obj = obj.clone(-5)
-    assert obj.get_values() == [1, 2, 3, 4, 5, 5, 4, 2]
+    assert obj.to_list() == [1, 2, 3, 4, 5, 5, 4, 2]
     try:
         obj = obj.clone(-8)
         assert False
@@ -168,9 +169,9 @@ def test_remove():
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.remove(0)
-    assert obj.get_values() == [1, 2, 3, 4]
+    assert obj.to_list() == [1, 2, 3, 4]
     obj = obj.remove(-3)
-    assert obj.get_values() == [2, 3, 4]
+    assert obj.to_list() == [2, 3, 4]
     try:
         obj = obj.remove(-3)
         assert False
@@ -187,11 +188,11 @@ def test_insert():
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.insert(0, 6)
-    assert obj.get_values() == [1, 2, 3, 4, 6, 5]
+    assert obj.to_list() == [1, 2, 3, 4, 6, 5]
     obj = obj.insert(-5, 0)
-    assert obj.get_values() == [0, 1, 2, 3, 4, 6, 5]
+    assert obj.to_list() == [0, 1, 2, 3, 4, 6, 5]
     obj = obj.insert(-1, 99)
-    assert obj.get_values() == [0, 1, 2, 3, 4, 99, 6, 5]
+    assert obj.to_list() == [0, 1, 2, 3, 4, 99, 6, 5]
     try:
         obj = obj.insert(9, 99)
         assert False
@@ -208,9 +209,9 @@ def test_reverse():
     obj = Cascader(1)
     obj = obj.push(2).push(3).push(4).push(5)
     obj = obj.reverse()
-    assert obj.get_values() == [5, 4, 3, 2, 1]
+    assert obj.to_list() == [5, 4, 3, 2, 1]
     obj = obj.reverse()
-    assert obj.get_values() == [1, 2, 3, 4, 5]
+    assert obj.to_list() == [1, 2, 3, 4, 5]
 
 
 def test_update():
@@ -219,7 +220,7 @@ def test_update():
     obj = obj.push(2).push(3).push(4).push(5)
     obj.update(0, 6)
     obj.update(-1, 99)
-    assert obj.get_values() == [1, 2, 3, 99, 6]
+    assert obj.to_list() == [1, 2, 3, 99, 6]
 
 def test_if_():
     obj = Cascader(1)
@@ -246,7 +247,30 @@ def test_save_state_and_restore_state():
     obj = obj.save_state()
     obj2 = Cascader(1)
     obj2 = Cascader.restore_state(obj)
-    assert obj2.get_values() == [1, 2, 3, 4, 5]
+    assert obj2.to_list() == [1, 2, 3, 4, 5]
+
+def test_to_list():
+    obj = Cascader(1)
+    obj = obj.push(2).push(3).push(4).push(5)
+    assert obj.to_list() == [1, 2, 3, 4, 5]
+
+def test_to_list_2():
+    obj = Cascader(0)
+    max_len = 65535
+    for i in range(1, max_len, 1):
+        obj = obj.push(i)
+    
+    expected = list(range(0, max_len, 1))
+    assert obj.to_list() == expected
+
+def test_iterate():
+    obj = Cascader(0)
+    obj = obj.push(1).push(2).push(3).push(4)
+    expected = 0
+    for i in obj:
+        print(i.value)
+        assert i.value == expected
+        expected += 1
 
 if __name__ == '__main__':
     test_push()
@@ -266,3 +290,6 @@ if __name__ == '__main__':
     test_update()
     test_if_()
     test_save_state_and_restore_state()
+    test_to_list()
+    test_to_list_2()
+    test_iterate()
